@@ -1,0 +1,39 @@
+{
+  "name": "purescript-stockfighter-http",
+  "description": "Purescript bindings for the http stockfighter.io API",
+  "version": "0.0.1",
+  "moduleType": [
+    "node"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "keywords": [
+    "purescript",
+    "stockfighter"
+  ],
+  "authors": [
+    "Pascal Hartig <phartig@rdrei.net>"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/passy/purescript-stockfighter-js.git"
+  },
+  "license": "Apache-2",
+  "dependencies": {
+    "purescript-prelude": "~0.1.3",
+    "purescript-aff": "~0.13.1",
+    "purescript-console": "~0.1.1",
+    "purescript-eff": "~0.1.2",
+    "purescript-foreign": "~0.7.2",
+    "purescript-errors": "~0.1.4",
+    "purescript-generics": "~0.7.0"
+  },
+  "devDependencies": {
+    "purescript-test-unit": "~3.0.0",
+    "purescript-debug": "~0.1.3"
+  }
+}
