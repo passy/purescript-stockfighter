@@ -15,8 +15,10 @@ import Data.Maybe (Maybe(..))
 import Control.Monad.Error.Class (MonadError, throwError)
 import Control.Monad.Eff.Exception (error)
 import Control.Monad.Error.Class (throwError)
-import Network.HTTP.Affjax (AJAX(), URL(), get)
+import Network.HTTP.Affjax (Affjax(), AJAX(), URL(), get, affjax, defaultRequest)
 import Network.HTTP.Affjax.Response (Respondable, ResponseType(..), fromResponse)
+import Network.HTTP.Method (Method(GET))
+import Network.HTTP.RequestHeader (RequestHeader(RequestHeader))
 import Data.Foreign.Class (IsForeign, read, readProp)
 import Control.Monad.Aff
 import Network.HTTP.MimeType.Common (applicationJSON)
@@ -37,12 +39,23 @@ mkURL :: StockfighterClient -> URL -> URL
 mkURL (StockfighterClient c) meth =
   c.endpoint ++ "/ob/api/" ++ meth
 
+authedHeaders :: StockfighterClient -> Array RequestHeader
+authedHeaders (StockfighterClient c) =
+  [ RequestHeader "X-Starfighter-Authorization" c.apiKey ]
+
+authedGet :: forall e a. (Respondable a) => StockfighterClient -> URL -> Affjax e a
+authedGet c url =
+  affjax $ defaultRequest { url = url
+                          , method = GET
+                          , headers = authedHeaders c
+                          }
+
 getJSON :: forall eff b. (IsForeign b, Respondable b) =>
   StockfighterClient ->
   String ->
   Aff (ajax :: AJAX | eff) b
 getJSON client meth = do
-  { response: response } <- get $ mkURL client meth
+  { response: response } <- authedGet client $ mkURL client meth
   liftEither <<< fromResponse $ response
 
   where
