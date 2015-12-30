@@ -10,10 +10,10 @@ where
 import Prelude
 
 import Data.Tuple (Tuple(..))
-import Data.Either (either)
+import Data.Either (Either(..), either)
 import Data.Maybe (Maybe(..))
 import Control.Bind ((>=>))
-import Control.Monad.Error.Class (throwError)
+import Control.Monad.Error.Class (MonadError, throwError)
 import Control.Monad.Eff.Exception (error)
 import Control.Monad.Error.Class (throwError)
 import Network.HTTP.Affjax (Affjax(), AJAX(), URL(), get)
@@ -46,13 +46,20 @@ mkURL :: StockfighterClient -> URL -> URL
 mkURL (StockfighterClient c) meth =
   c.endpoint ++ "/ob/api/" ++ meth
 
-heartbeat :: forall eff. StockfighterClient -> Aff (ajax :: AJAX | eff) (Maybe HeartbeatResponse)
-heartbeat client = do
-  { response: response } <- get (mkURL client "heartbeat")
-  pure <<< hush <<< fromResponse $ response
+getJSON :: forall eff b. (IsForeign b, Respondable b) =>
+  StockfighterClient ->
+  String ->
+  Aff (ajax :: AJAX | eff) b
+getJSON client meth = do
+  { response: response } <- get $ mkURL client meth
+  liftEither <<< fromResponse $ response
 
   where
-    eitherToMaybe = either (const Nothing) Just
+    -- liftEither :: forall a a1 c m. (Show a, MonadError c m) => Either a a1 -> m a1
+    liftEither = either (throwError <<< error <<< show) return
+
+heartbeat :: forall eff. StockfighterClient -> Aff (ajax :: AJAX | eff) HeartbeatResponse
+heartbeat client = getJSON client "heartbeat"
 
 instance isForeignHeartbeatResponse :: IsForeign HeartbeatResponse where
   read o = map HeartbeatResponse $ { ok: _ }
