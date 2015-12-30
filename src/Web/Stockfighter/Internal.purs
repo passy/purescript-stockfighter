@@ -1,5 +1,7 @@
 module Web.Stockfighter.Internal
-  ( mkURL
+  ( ForeignDate()
+  , unForeignDate
+  , mkURL
   , authedHeaders
   , authedGet
   , getJSON
@@ -7,22 +9,39 @@ module Web.Stockfighter.Internal
 
 import Prelude
 
-import Data.Tuple (Tuple(..))
-import Data.Either (either)
-import Data.Maybe (Maybe(..))
-import Control.Monad.Error.Class (MonadError, throwError)
+import Control.Monad.Aff
 import Control.Monad.Eff.Exception (error)
+import Control.Monad.Error.Class (MonadError, throwError)
 import Control.Monad.Error.Class (throwError)
-import Network.HTTP.Affjax (Affjax(), AJAX(), URL(), get, affjax, defaultRequest)
-import Network.HTTP.Affjax.Response (Respondable, ResponseType(..), fromResponse)
+import Data.Either (either, Either(Left))
+import Data.Foreign.Class (IsForeign)
+import Data.Foreign (F(), Foreign(), ForeignError(..), readString, tagOf)
+import Data.Maybe (maybe)
+import Network.HTTP.Affjax (Affjax(), AJAX(), URL(), affjax, defaultRequest)
+import Network.HTTP.Affjax.Response (Respondable, fromResponse)
 import Network.HTTP.Method (Method(GET))
 import Network.HTTP.RequestHeader (RequestHeader(RequestHeader))
-import Data.Foreign.Class (IsForeign, read, readProp)
-import Control.Monad.Aff
-import Network.HTTP.MimeType.Common (applicationJSON)
-import Data.Generic (Generic, gShow)
 
+import qualified Data.Date as D
 import Web.Stockfighter.Types (StockfighterClient(..))
+
+newtype ForeignDate = ForeignDate D.Date
+
+unForeignDate :: ForeignDate -> D.Date
+unForeignDate (ForeignDate d) = d
+
+instance isForeignForeignDate :: IsForeign ForeignDate where
+  read = readDate
+
+readDate :: Foreign -> F ForeignDate
+readDate o =
+    readString o >>= fromDateStr <#> ForeignDate
+    where
+      fromDateStr :: String -> F D.Date
+      fromDateStr = maybe error pure <<< D.fromString
+
+      error :: F D.Date
+      error = Left $ TypeMismatch "Date" (tagOf o)
 
 mkURL :: StockfighterClient -> URL -> URL
 mkURL (StockfighterClient c) meth =

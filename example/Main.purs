@@ -10,7 +10,10 @@ import Control.Monad.Aff (launchAff)
 import qualified Web.Stockfighter as S
 
 main = launchAff $ do
+  -- That's a no longer valid session key. Get your own. :)
   let client = S.mkClient "8346a073e7292aabb3e6d6e2b3b7125a618f84f3"
   res <- S.heartbeat client
-
   liftEff $ print res
+
+  orders <- S.orderbook client { venue: "OWVDEX", stock: "IMRE" }
+  liftEff $ print orders
