@@ -7,7 +7,7 @@
   "license": "Apache-2",
   "devDependencies": {
     "moment": "^2.10.6",
-    "pulp": "^4.0.2",
+    "pulp": "^11.0.0",
     "rimraf": "^2.4.1",
     "xhr2": "^0.1.3"
   }
